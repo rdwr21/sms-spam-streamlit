@@ -1,6 +1,7 @@
 # =========================================================
 # File : app_sms_streamlit.py
 # Deskripsi : Aplikasi Streamlit untuk klasifikasi SMS spam
+# Fitur tambahan: dropdown contoh SMS aman, penipuan, dan promosi
 # Cara menjalankan:
 #    streamlit run app_sms_streamlit.py
 # =========================================================
@@ -40,10 +41,34 @@ model = load_model()
 st.set_page_config(page_title="Deteksi SMS Spam", page_icon="📱")
 st.title("📱 Deteksi SMS Spam Bahasa Indonesia")
 st.markdown("Masukkan teks SMS untuk memeriksa apakah termasuk **normal**, **penipuan**, atau **promosi**.")
+st.markdown("---")
 
-# Input teks
-sms_input = st.text_area("Ketik isi SMS di sini...", height=150)
+# ---------------------------------------------------------
+# 4. Pilihan contoh SMS
+# ---------------------------------------------------------
+contoh_sms_dict = {
+    "📩 Pilih contoh SMS...": "",
+    "✅ Contoh SMS Aman": "Besok kita makan siang di kantor ya",
+    "🚨 Contoh SMS Penipuan": "Selamat! Anda memenangkan undian mobil mewah, segera kirim data diri Anda",
+    "📢 Contoh SMS Promosi": "Promo besar-besaran diskon hingga 70% hanya hari ini di toko kami!",
+}
 
+contoh_pilihan = st.selectbox(
+    "Pilih contoh SMS (opsional):",
+    list(contoh_sms_dict.keys()),
+)
+
+# Auto-fill ke text area jika dipilih
+default_sms = contoh_sms_dict[contoh_pilihan]
+
+# ---------------------------------------------------------
+# 5. Input teks SMS
+# ---------------------------------------------------------
+sms_input = st.text_area("Ketik atau ubah isi SMS di sini 👇", value=default_sms, height=150)
+
+# ---------------------------------------------------------
+# 6. Tombol Prediksi
+# ---------------------------------------------------------
 if st.button("🔍 Prediksi"):
     if sms_input.strip() == "":
         st.warning("Silakan masukkan teks SMS terlebih dahulu.")
@@ -51,7 +76,9 @@ if st.button("🔍 Prediksi"):
         cleaned = clean_text(sms_input)
         pred = model.predict([cleaned])[0]
 
-        # Tampilan hasil
+        st.markdown("---")
+        st.subheader("📊 Hasil Prediksi:")
+
         if pred == "penipuan":
             st.error("🚨 SMS ini terdeteksi sebagai **PENIPUAN**.")
         elif pred == "promosi":
@@ -60,5 +87,4 @@ if st.button("🔍 Prediksi"):
             st.success("✅ SMS ini terdeteksi **NORMAL / AMAN**.")
 
         st.markdown("---")
-        st.markdown("🧠 *Model menggunakan TF-IDF + Multinomial Naive Bayes (Scikit-Learn)*")
-
+        st.caption("🧠 Model menggunakan TF-IDF + Multinomial Naive Bayes (Scikit-Learn)")
